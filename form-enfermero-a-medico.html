@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación de Médico Líder — Promed · Embol</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a3a6b;--blue2:#1e4080;--blue-l:#eff6ff;
+  --dark:#0a0a0a;--gold:#C8A951;--gold-l:#fdf8ec;
+  --green:#059669;--green-l:#ecfdf5;
+  --slate:#f6f7f9;--border:#e4e7ed;
+  --text:#1a1a2e;--muted:#6b7280;--white:#fff;
+  --radius:14px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--slate);color:var(--text);min-height:100vh}
+.header{background:var(--dark);position:relative;overflow:hidden;padding:0}
+.header-stripe{height:5px;background:linear-gradient(90deg,var(--blue) 0%,#2563eb 50%,var(--gold) 100%)}
+.header-body{padding:32px 24px 28px;max-width:720px;margin:0 auto;display:flex;align-items:center;gap:20px}
+.header-badge{width:56px;height:56px;background:var(--blue);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;box-shadow:0 4px 20px rgba(26,58,107,.5)}
+.header-eyebrow{font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.header-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--white);line-height:1.2}
+.header-sub{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px}
+.progress-wrap{background:rgba(255,255,255,.08);height:3px;width:100%}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--gold));transition:width .4s ease;width:0%}
+.main{max-width:720px;margin:0 auto;padding:28px 20px 80px}
+.step{display:none;animation:fadeUp .3s ease}
+.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.section-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.section-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.section-num{width:28px;height:28px;border-radius:8px;background:var(--blue);color:var(--white);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--text)}
+.section-dim{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:1px}
+.section-body{padding:20px}
+.field-group{margin-bottom:18px}
+.field-label{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text);margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.req{color:var(--blue)}
+.field-input,.field-select,.field-textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color .15s,box-shadow .15s}
+.field-input:focus,.field-select:focus,.field-textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,58,107,.08)}
+.field-input::placeholder,.field-textarea::placeholder{color:#c0c4cc}
+.field-textarea{resize:vertical;min-height:90px;line-height:1.6}
+.likert-q{margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid var(--border)}
+.likert-q:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.likert-text{font-size:14px;color:var(--text);line-height:1.5;margin-bottom:12px;font-weight:500}
+.likert-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.likert-opt{cursor:pointer}
+.likert-opt input{display:none}
+.likert-opt label{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;text-align:center;background:var(--white)}
+.likert-opt label:hover{border-color:var(--blue);background:var(--blue-l)}
+.likert-opt input:checked + label{border-color:var(--blue);background:var(--blue-l);color:var(--blue)}
+.likert-opt input:checked + label .lo-num{background:var(--blue);color:var(--white)}
+.lo-num{width:26px;height:26px;border-radius:50%;background:var(--slate);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.lo-text{font-size:9px;color:var(--muted);line-height:1.2;font-weight:500}
+.likert-opt input:checked + label .lo-text{color:var(--blue)}
+.nps-scale{display:flex;gap:4px;flex-wrap:wrap}
+.nps-opt{cursor:pointer}
+.nps-opt input{display:none}
+.nps-opt label{width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--muted)}
+.nps-opt label:hover{border-color:var(--blue);color:var(--blue)}
+.nps-opt input:checked + label{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.nps-labels{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--muted);font-weight:500}
+.nav-bar{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:12px}
+.btn{padding:12px 24px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;transition:all .15s}
+.btn svg{width:15px;height:15px}
+.btn-primary{background:var(--blue);color:var(--white)}
+.btn-primary:hover{background:var(--blue2);box-shadow:0 4px 16px rgba(26,58,107,.3)}
+.btn-ghost{background:var(--white);color:var(--text);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--text)}
+.btn-success{background:var(--green);color:var(--white);width:100%;justify-content:center;padding:16px;font-size:15px}
+.btn-success:hover{background:#047857}
+.step-indicator{display:flex;gap:6px;margin-bottom:24px;align-items:center}
+.si-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s}
+.si-dot.done{background:var(--green)}
+.si-dot.active{width:24px;border-radius:4px;background:var(--blue)}
+.si-label{font-size:12px;color:var(--muted);margin-left:4px}
+.success-screen{display:none;text-align:center;padding:60px 24px}
+.success-screen.show{display:block}
+.success-icon{width:72px;height:72px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;border:2px solid #a7f3d0}
+.success-title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.6}
+.sending-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.sending-overlay.show{display:flex}
+.sending-card{background:var(--white);border-radius:var(--radius);padding:32px 40px;text-align:center}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.anon-notice{background:var(--blue-l);border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;font-size:12px;color:#1e40af;margin-bottom:20px;display:flex;gap:8px;align-items:flex-start}
+.anon-notice svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+@media(max-width:480px){.lo-text{display:none}.header-body{flex-direction:column;align-items:flex-start;gap:12px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-stripe"></div>
+  <div class="header-body">
+    <div class="header-badge">👨‍⚕️</div>
+    <div class="header-text">
+      <div class="header-eyebrow">Promed · Embol — Calidad Interna</div>
+      <div class="header-title">Evaluación de Médico Líder</div>
+      <div class="header-sub">Enfermero/a evalúa al Médico Líder · Anónima y confidencial</div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progress"></div></div>
+</div>
+
+<div class="main">
+  <div class="step-indicator" id="step-indicator"></div>
+
+  <div class="anon-notice">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span>Esta evaluación es <strong>anónima</strong>. No incluyas tu nombre. Tus respuestas son procesadas de forma agregada y nunca se asocian a un individuo específico.</span>
+  </div>
+
+  <!-- STEP 1: Identificación -->
+  <div class="step active" id="step-1">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">01</div>
+        <div><div class="section-title">Contexto de la Evaluación</div><div class="section-dim">Sin identificación personal</div></div>
+      </div>
+      <div class="section-body">
+        <div class="field-group">
+          <div class="field-label">Médico líder que evalúas <span class="req">*</span></div>
+          <select class="field-select" id="f-medico-eval">
+            <option value="">— Seleccionar médico —</option>
+            <option>Dr./Dra. Médico Planta Warnes</option>
+            <option>Dr./Dra. Médico Planta Mallasa</option>
+            <option>Dr./Dra. Médico Planta Quillacollo</option>
+            <option>Dr./Dra. Médico CD Santa Cruz</option>
+            <option>Dr./Dra. Médico CD La Paz</option>
+            <option>Dr./Dra. Médico CD Cochabamba</option>
+          </select>
+          <div style="font-size:11px;color:var(--muted);margin-top:5px">💡 Tip: Personaliza esta lista con los nombres reales en el código HTML</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="field-group">
+            <div class="field-label">Planta / Centro <span class="req">*</span></div>
+            <select class="field-select" id="f-planta">
+              <option value="">— Seleccionar —</option>
+              <optgroup label="Santa Cruz">
+                <option>Planta Warnes — Santa Cruz</option>
+                <option>CD Santa Cruz</option>
+              </optgroup>
+              <optgroup label="La Paz">
+                <option>Planta Mallasa — La Paz</option>
+                <option>CD La Paz</option>
+              </optgroup>
+              <optgroup label="Cochabamba">
+                <option>Planta Quillacollo — Cochabamba</option>
+                <option>CD Cochabamba</option>
+              </optgroup>
+              <optgroup label="Otras">
+                <option>CD Potosí</option>
+                <option>CD Sucre</option>
+                <option>CD Tarija</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Período evaluado <span class="req">*</span></div>
+            <select class="field-select" id="f-periodo">
+              <option value="">— Seleccionar —</option>
+              <option>Enero 2025</option><option>Febrero 2025</option><option>Marzo 2025</option>
+              <option>Abril 2025</option><option>Mayo 2025</option><option>Junio 2025</option>
+              <option>Julio 2025</option><option>Agosto 2025</option><option>Septiembre 2025</option>
+              <option>Octubre 2025</option><option>Noviembre 2025</option><option>Diciembre 2025</option>
+              <option>Enero 2026</option><option>Febrero 2026</option><option>Marzo 2026</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom:0">
+          <div class="field-label">Tu experiencia trabajando con este médico</div>
+          <select class="field-select" id="f-tiempo">
+            <option value="">— Seleccionar —</option>
+            <option>Menos de 1 mes</option><option>1-3 meses</option>
+            <option>3-6 meses</option><option>6-12 meses</option><option>Más de 1 año</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div></div>
+      <button class="btn btn-primary" onclick="nextStep(1)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Liderazgo -->
+  <div class="step" id="step-2">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">A</div>
+        <div><div class="section-title">Liderazgo y Toma de Decisiones</div><div class="section-dim">4 preguntas · Dimensión 1 de 4</div></div>
+      </div>
+      <div class="section-body"><div id="dim-A"></div></div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-ghost" onclick="prevStep(2)">← Anterior</button>
+      <button class="btn btn-primary" onclick="nextStep(2)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Comunicación -->
+  <div class="step" id="step-3">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">B</div>
+        <div><div class="section-title">Comunicación y Clima de Equipo</div><div class="section-dim">4 preguntas · Dimensión 2 de 4</div></div>
+      </div>
+      <div class="section-body"><div id="dim-B"></div></div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-ghost" onclick="prevStep(3)">← Anterior</button>
+      <button class="btn btn-primary" onclick="nextStep(3)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Gestión clínica -->
+  <div class="step" id="step-4">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">C</div>
+        <div><div class="section-title">Gestión Clínica y Prevención</div><div class="section-dim">4 preguntas · Dimensión 3 de 4</div></div>
+      </div>
+      <div class="section-body"><div id="dim-C"></div></div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-ghost" onclick="prevStep(4)">← Anterior</button>
+      <button class="btn btn-primary" onclick="nextStep(4)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Normativa -->
+  <div class="step" id="step-5">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">D</div>
+        <div><div class="section-title">Cumplimiento Normativo y Valores</div><div class="section-dim">4 preguntas · Dimensión 4 de 4</div></div>
+      </div>
+      <div class="section-body"><div id="dim-D"></div></div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-ghost" onclick="prevStep(5)">← Anterior</button>
+      <button class="btn btn-primary" onclick="nextStep(5)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 6: Cierre -->
+  <div class="step" id="step-6">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">E</div>
+        <div><div class="section-title">Valoración Global y Comentarios</div><div class="section-dim">Cierre de evaluación</div></div>
+      </div>
+      <div class="section-body">
+        <div class="field-group">
+          <div class="field-label">¿Qué tan probable es que te sientas respaldado/a por este médico en una situación crítica? <span class="req">*</span></div>
+          <div class="nps-scale" id="nps-respaldo"></div>
+          <div class="nps-labels"><span>Nada probable</span><span>Completamente probable</span></div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">¿Qué valoras más del estilo de liderazgo de este médico?</div>
+          <textarea class="field-textarea" id="f-fortaleza" placeholder="Describe lo que más aprecias de su forma de trabajar y liderar..."></textarea>
+        </div>
+        <div class="field-group" style="margin-bottom:0">
+          <div class="field-label">¿Qué aspectos podrían fortalecerse para mejorar el trabajo conjunto?</div>
+          <textarea class="field-textarea" id="f-mejora" placeholder="Sugerencias constructivas y anónimas..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-ghost" onclick="prevStep(6)">← Anterior</button>
+      <button class="btn btn-success" onclick="enviarFormulario()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Enviar Evaluación
+      </button>
+    </div>
+  </div>
+
+  <div class="success-screen" id="success">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Evaluación enviada</div>
+    <div class="success-sub">Gracias por tu aporte. Esta evaluación anónima ayuda a mejorar el liderazgo médico en <strong>Promed · Embol</strong>.</div>
+    <div style="margin-top:24px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace" id="success-ref"></div>
+  </div>
+</div>
+
+<div class="sending-overlay" id="sending">
+  <div class="sending-card">
+    <div class="spinner"></div>
+    <div style="font-weight:600;font-size:14px">Enviando evaluación...</div>
+  </div>
+</div>
+
+<script>
+const DIMS = {
+  A:[
+    "El estilo de liderazgo del médico contribuye a un ambiente laboral respetuoso y profesional.",
+    "Las decisiones del médico se perciben coherentes, equilibradas y justas.",
+    "Ante situaciones complejas o conflictos, el médico demuestra apertura al diálogo.",
+    "El médico gestiona adecuadamente las situaciones de presión sin afectar al equipo."
+  ],
+  B:[
+    "La forma en que el médico se comunica genera confianza y claridad en el equipo.",
+    "Las indicaciones médicas se transmiten de manera comprensible y oportuna.",
+    "Existe facilidad para consultar dudas relacionadas con protocolos de SSOO.",
+    "La coordinación del médico favorece la continuidad del trabajo sin fricciones."
+  ],
+  C:[
+    "El médico demuestra interés genuino por la prevención de riesgos laborales.",
+    "Las acciones médicas están alineadas con el bienestar real del trabajador.",
+    "Se percibe apoyo médico claro ante incidentes o molestias relacionadas al trabajo.",
+    "El médico promueve activamente la colaboración entre las distintas áreas."
+  ],
+  D:[
+    "El médico refuerza el cumplimiento de normas de bioseguridad con el ejemplo.",
+    "Su comportamiento profesional es coherente con los valores institucionales de Promed.",
+    "El médico transmite confianza en la gestión de Salud y Seguridad Ocupacional.",
+    "Promueve el desarrollo profesional del equipo de enfermería a su cargo."
+  ]
+};
+
+const ESCALA=[
+  {n:1,t:'Muy en<br>desacuerdo'},{n:2,t:'En<br>desacuerdo'},{n:3,t:'Neutral'},
+  {n:4,t:'De<br>acuerdo'},{n:5,t:'Totalmente<br>de acuerdo'}
+];
+
+Object.entries(DIMS).forEach(([dim,preguntas])=>{
+  document.getElementById('dim-'+dim).innerHTML=preguntas.map((q,i)=>`
+    <div class="likert-q">
+      <div class="likert-text">${dim}${i+1}. ${q}</div>
+      <div class="likert-scale">
+        ${ESCALA.map(e=>`
+          <div class="likert-opt">
+            <input type="radio" name="q_${dim}${i+1}" id="q_${dim}${i+1}_${e.n}" value="${e.n}"/>
+            <label for="q_${dim}${i+1}_${e.n}">
+              <div class="lo-num">${e.n}</div>
+              <div class="lo-text">${e.t}</div>
+            </label>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+});
+
+const npsC=document.getElementById('nps-respaldo');
+for(let i=1;i<=10;i++) npsC.innerHTML+=`<div class="nps-opt"><input type="radio" name="nps_r" id="nps_r_${i}" value="${i}"/><label for="nps_r_${i}">${i}</label></div>`;
+
+let currentStep=1;
+const TOTAL=6;
+
+function updateUI(){
+  document.getElementById('progress').style.width=(currentStep/TOTAL*100)+'%';
+  const ind=document.getElementById('step-indicator');
+  ind.innerHTML='';
+  for(let i=1;i<=TOTAL;i++){
+    const d=document.createElement('div');
+    d.className='si-dot'+(i<currentStep?' done':i===currentStep?' active':'');
+    ind.appendChild(d);
+  }
+  const l=document.createElement('span');
+  l.className='si-label';l.textContent=`Paso ${currentStep} de ${TOTAL}`;
+  ind.appendChild(l);
+}
+
+function nextStep(from){
+  if(!validateStep(from)) return;
+  document.getElementById('step-'+from).classList.remove('active');
+  currentStep=from+1;
+  document.getElementById('step-'+currentStep).classList.add('active');
+  updateUI();window.scrollTo({top:0,behavior:'smooth'});
+}
+function prevStep(from){
+  document.getElementById('step-'+from).classList.remove('active');
+  currentStep=from-1;
+  document.getElementById('step-'+currentStep).classList.add('active');
+  updateUI();window.scrollTo({top:0,behavior:'smooth'});
+}
+function validateStep(step){
+  if(step===1){
+    const req=['f-medico-eval','f-planta','f-periodo'];
+    const empty=req.filter(id=>!document.getElementById(id).value.trim());
+    if(empty.length){empty.forEach(id=>{const el=document.getElementById(id);el.style.borderColor='var(--blue)';setTimeout(()=>el.style.borderColor='',2000);});return false;}
+  }
+  if([2,3,4,5].includes(step)){
+    const dimMap={2:'A',3:'B',4:'C',5:'D'};
+    const dim=dimMap[step];
+    for(let i=1;i<=4;i++){
+      if(!document.querySelector(`input[name="q_${dim}${i}"]:checked`)){
+        alert(`Por favor responde todas las preguntas de la dimensión ${dim}.`);return false;
+      }
+    }
+  }
+  return true;
+}
+
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbx0ehRQpUSfWX2qBy5mdPhWAKaBafiDmcKCpeXHW0JAbdXbc-6Lxxn8FOkwm1SIfSAJ/exec';
+
+async function enviarFormulario(){
+  const nps=document.querySelector('input[name="nps_r"]:checked');
+  if(!nps){alert('Por favor indica tu valoración de respaldo (1-10).');return;}
+  const data={
+    tipo:'enfermero_a_medico',
+    timestamp:new Date().toISOString(),
+    medico_evaluado:document.getElementById('f-medico-eval').value,
+    planta:document.getElementById('f-planta').value,
+    periodo:document.getElementById('f-periodo').value,
+    tiempo_juntos:document.getElementById('f-tiempo').value,
+  };
+  ['A','B','C','D'].forEach(dim=>{
+    let total=0;
+    for(let i=1;i<=4;i++){const val=parseInt(document.querySelector(`input[name="q_${dim}${i}"]:checked`).value);data[`${dim}${i}`]=val;total+=val;}
+    data[`dim_${dim}_prom`]=(total/4).toFixed(2);
+  });
+  const all=['A','B','C','D'].flatMap(d=>[1,2,3,4].map(i=>parseInt(document.querySelector(`input[name="q_${d}${i}"]:checked`).value)));
+  data.puntaje_global=(all.reduce((s,v)=>s+v,0)/all.length).toFixed(2);
+  data.nps_respaldo=nps.value;
+  data.fortaleza=document.getElementById('f-fortaleza').value;
+  data.mejora=document.getElementById('f-mejora').value;
+
+  document.getElementById('sending').classList.add('show');
+
+  // Envío via GET para funcionar desde archivos locales (sin CORS)
+  const encoded = encodeURIComponent(JSON.stringify(data));
+  const url = SCRIPT_URL + '?data=' + encoded;
+  
+  const script = document.createElement('script');
+  script.src = url;
+  script.remove();
+  document.head.appendChild(script);
+
+  setTimeout(() => {
+    document.getElementById('sending').classList.remove('show');
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('step-indicator').style.display='none';
+    document.getElementById('success').classList.add('show');
+    document.getElementById('success-ref').textContent='REF: EVAL-'+Date.now().toString(36).toUpperCase();
+    document.getElementById('progress').style.width='100%';
+  }, 3000);
+}
+updateUI();
+</script>
+</body>
+</html>

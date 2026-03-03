@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Evaluaciones — Promed · Embol</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0b1928;--navy2:#0f2236;--navy3:#162d47;
+  --red:#CC0000;--red-l:#fff5f5;
+  --blue:#1a3a6b;--blue-l:#eff6ff;
+  --gold:#C8A951;--gold-l:#fdf8ec;
+  --green:#059669;--green-l:#ecfdf5;
+  --amber:#d97706;--amber-l:#fffbeb;
+  --purple:#7c3aed;--purple-l:#f5f3ff;
+  --slate:#f4f6f9;--border:#e2e8f0;--border2:#cbd5e1;
+  --text:#0f172a;--text2:#334155;--muted:#64748b;--ghost:#94a3b8;
+  --white:#ffffff;
+  --sidebar-w:230px;
+  --shadow:0 1px 3px rgba(0,0,0,.07),0 4px 20px rgba(0,0,0,.06);
+  --shadow-lg:0 8px 40px rgba(0,0,0,.12);
+  --r:12px;--r-lg:16px;--r-sm:8px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--slate);color:var(--text);display:flex;font-size:14px}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);background:var(--navy);flex-shrink:0;display:flex;flex-direction:column;height:100vh;overflow-y:auto}
+.sb-brand{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-logo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.sb-logo span{color:var(--gold)}
+.sb-client{margin-top:6px;background:rgba(200,169,81,.12);border:1px solid rgba(200,169,81,.25);border-radius:6px;padding:5px 10px;display:flex;align-items:center;gap:6px}
+.sb-client-name{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.04em}
+.sb-client-sub{font-size:9px;color:rgba(200,169,81,.6);text-transform:uppercase;letter-spacing:.08em}
+.sb-section{padding:14px 8px 4px}
+.sb-section-label{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.28);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r-sm);cursor:pointer;color:rgba(255,255,255,.5);font-size:12.5px;font-weight:500;transition:all .15s;border:none;background:none;width:100%;text-align:left;position:relative}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(200,169,81,.12);color:#fff}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:55%;background:var(--gold);border-radius:0 3px 3px 0}
+.nav-icon{width:15px;height:15px;flex-shrink:0}
+.sb-filters{margin:10px 10px 4px;background:rgba(255,255,255,.05);border-radius:var(--r-sm);padding:12px}
+.sb-filters-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px}
+.sb-select{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.85);font-family:'DM Sans',sans-serif;font-size:11.5px;padding:7px 10px;border-radius:6px;outline:none;cursor:pointer;margin-bottom:6px}
+.sb-select option{background:var(--navy2);color:#fff}
+.sb-bottom{margin-top:auto;padding:12px 10px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-sync{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);cursor:pointer;background:rgba(5,150,105,.15);border:1px solid rgba(5,150,105,.25)}
+.sb-sync-icon{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-sync-text{font-size:11px;color:rgba(255,255,255,.7);font-weight:500}
+.sb-sync-time{font-size:9px;color:rgba(255,255,255,.3);margin-top:1px;font-family:'DM Mono',monospace}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:16px}
+.tb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.tb-actions{display:flex;align-items:center;gap:8px}
+.content{flex:1;overflow-y:auto;padding:22px 24px 60px}
+
+/* ── PAGE ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn svg{width:13px;height:13px}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--slate)}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--navy2)}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:#aa0000}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-gold:hover{background:#b8973f}
+
+/* ── KPI CARDS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);padding:16px;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.kpi-bar{position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.kpi-icon{width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:15px}
+.kpi-trend{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px}
+.kpi-trend.up{background:var(--green-l);color:var(--green)}
+.kpi-trend.down{background:var(--red-l);color:var(--red)}
+.kpi-trend.neutral{background:var(--slate);color:var(--muted)}
+.kpi-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1;letter-spacing:-.02em;margin-bottom:3px}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:500}
+
+/* ── SCORE GAUGE ── */
+.score-ring{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring-val{position:absolute;text-align:center}
+.score-ring-num{font-family:'Syne',sans-serif;font-weight:800;line-height:1}
+.score-ring-label{font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+
+/* ── CARDS ── */
+.card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow)}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.card-body{padding:18px}
+.card-body-p0{padding:0}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.chart-h{height:200px;position:relative}
+.chart-h-sm{height:170px;position:relative}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--slate);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:12.5px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#f8fafc;cursor:pointer}
+.td-mono{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.td-bold{font-weight:600}
+
+/* ── TAGS ── */
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.tag-green{background:var(--green-l);color:var(--green)}
+.tag-red{background:var(--red-l);color:var(--red)}
+.tag-amber{background:var(--amber-l);color:var(--amber)}
+.tag-blue{background:var(--blue-l);color:var(--blue)}
+.tag-gold{background:var(--gold-l);color:#92600a}
+.tag-purple{background:var(--purple-l);color:var(--purple)}
+.tag-ghost{background:var(--slate);color:var(--muted)}
+
+/* ── PERSON CARD ── */
+.person-card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:all .2s}
+.person-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);border-color:var(--border2)}
+.person-top{display:flex;align-items:center;gap:12px}
+.person-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;flex-shrink:0}
+.person-name{font-weight:700;font-size:13px;line-height:1.3}
+.person-role{font-size:11px;color:var(--muted)}
+.person-planta{font-size:10px;font-weight:600;color:var(--muted);background:var(--slate);padding:2px 8px;border-radius:6px;display:inline-block;margin-top:2px}
+.score-bar-wrap{display:flex;flex-direction:column;gap:6px}
+.score-bar-row{display:flex;align-items:center;gap:8px}
+.score-bar-label{font-size:10px;color:var(--muted);width:60px;flex-shrink:0}
+.score-bar-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.score-bar-val{font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text2);min-width:24px;text-align:right}
+.global-score{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)}
+.gs-label{font-size:11px;color:var(--muted)}
+.gs-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+
+/* ── PROGRESS BAR ── */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.prog-label{font-size:12px;color:var(--text2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prog-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;width:120px;flex-shrink:0}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.prog-val{font-size:11px;font-weight:700;color:var(--muted);min-width:26px;text-align:right;font-family:'DM Mono',monospace}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:var(--slate);border-radius:var(--r-sm);padding:3px;margin-bottom:16px;width:fit-content}
+.tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:none;transition:all .15s}
+.tab.active{background:var(--white);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* ── ALERT ── */
+.alert{border-radius:var(--r-sm);padding:10px 14px;font-size:12px;display:flex;gap:8px;align-items:flex-start;margin-bottom:14px}
+.alert svg{width:13px;height:13px;flex-shrink:0;margin-top:1px}
+.alert-info{background:var(--blue-l);border:1px solid #bfdbfe;color:#1e40af}
+.alert-warning{background:var(--amber-l);border:1px solid #fcd34d;color:#92400e}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-ov.open{display:flex}
+.modal{background:var(--white);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);width:92%;max-width:680px;max-height:90vh;overflow-y:auto;animation:mIn .2s ease}
+@keyframes mIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:1}
+.modal-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.modal-close{width:26px;height:26px;border-radius:6px;border:none;background:var(--slate);cursor:pointer;color:var(--muted);font-size:14px;transition:background .15s}
+.modal-close:hover{background:var(--border)}
+.modal-body{padding:22px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:11px 18px;border-radius:var(--r);font-size:12px;font-weight:600;box-shadow:var(--shadow-lg);transform:translateY(60px);opacity:0;transition:all .3s;z-index:9999;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── SETUP SCREEN ── */
+.setup-screen{max-width:600px;margin:40px auto;text-align:center}
+.setup-icon{font-size:48px;margin-bottom:16px}
+.setup-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:8px}
+.setup-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:28px}
+.setup-steps{text-align:left;background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
+.setup-step{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start}
+.setup-step:last-child{border-bottom:none}
+.ss-num{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-family:'DM Mono',monospace;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ss-title{font-weight:700;font-size:13px;margin-bottom:3px}
+.ss-text{font-size:12px;color:var(--muted);line-height:1.5}
+.code-block{background:var(--navy);color:#e2e8f0;border-radius:var(--r-sm);padding:14px 16px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.7;text-align:left;margin-top:8px;position:relative;overflow-x:auto}
+.code-block .comment{color:#64748b}
+.code-block .string{color:var(--gold)}
+.code-block .keyword{color:#7dd3fc}
+.copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);padding:4px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-family:'DM Mono',monospace}
+.copy-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+.url-input-wrap{display:flex;gap:8px;margin-top:12px}
+.url-input{flex:1;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:'DM Mono',monospace;font-size:11px;outline:none}
+.url-input:focus{border-color:var(--navy)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">Pro<span>Med</span> Corp</div>
+    <div class="sb-client" style="margin-top:8px">
+      <div>
+        <div class="sb-client-name">🥤 EMBOL S.A.</div>
+        <div class="sb-client-sub">Embotelladora Coca-Cola Bolivia</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-section-label">Vistas</div>
+    <button class="nav-item active" onclick="goPage('overview',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Resumen General
+    </button>
+    <button class="nav-item" onclick="goPage('enfermeros',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Enfermeros
+    </button>
+    <button class="nav-item" onclick="goPage('medicos',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Médicos Líderes
+    </button>
+    <button class="nav-item" onclick="goPage('plantas',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Por Planta
+    </button>
+    <button class="nav-item" onclick="goPage('comentarios',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Comentarios
+    </button>
+  </div>
+
+  <div class="sb-filters">
+    <div class="sb-filters-label">Filtros</div>
+    <select class="sb-select" id="fil-periodo" onchange="applyFilters()">
+      <option value="all">Todos los períodos</option>
+    </select>
+    <select class="sb-select" id="fil-planta" onchange="applyFilters()">
+      <option value="all">Todas las plantas</option>
+      <option>Planta Warnes — Santa Cruz</option>
+      <option>Planta Mallasa — La Paz</option>
+      <option>Planta Quillacollo — Cochabamba</option>
+      <option>CD Santa Cruz</option>
+      <option>CD La Paz</option>
+      <option>CD Cochabamba</option>
+      <option>CD Potosí</option>
+      <option>CD Sucre</option>
+      <option>CD Tarija</option>
+    </select>
+    <select class="sb-select" id="fil-tipo" onchange="applyFilters()">
+      <option value="all">Ambas evaluaciones</option>
+      <option value="medico_a_enfermero">Médico → Enfermero</option>
+      <option value="enfermero_a_medico">Enfermero → Médico</option>
+    </select>
+  </div>
+
+  <div class="sb-bottom">
+    <div class="sb-sync" onclick="syncData()">
+      <div class="sb-sync-icon"></div>
+      <div>
+        <div class="sb-sync-text">Datos en tiempo real</div>
+        <div class="sb-sync-time" id="sync-time">Última sync: ahora</div>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:11px" onclick="goPage('config',this)">
+        ⚙️ Configuración
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-title" id="tb-title">Resumen General — Evaluaciones Promed · Embol</div>
+    <div class="tb-actions">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="tb-count">0 evaluaciones cargadas</div>
+      <button class="btn btn-ghost" onclick="exportCSV()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Exportar
+      </button>
+      <button class="btn btn-red" onclick="goPage('config',null)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+        Conectar Sheets
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="page active" id="page-overview">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800">Panel de Evaluaciones</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px" id="ov-subtitle">Programa de Calidad Interna · Médico Corporativo</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <div class="tabs" style="margin-bottom:0">
+            <button class="tab active" onclick="switchOvTab('ambos',this)">Ambos</button>
+            <button class="tab" onclick="switchOvTab('med-enf',this)">Médico→Enfermero</button>
+            <button class="tab" onclick="switchOvTab('enf-med',this)">Enfermero→Médico</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="ov-kpis"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📅 Evaluaciones por período</div></div>
+          <div class="card-body"><div class="chart-h"><canvas id="c-periodos"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">🏭 Puntaje promedio por planta</div></div>
+          <div class="card-body"><div class="chart-h"><canvas id="c-plantas"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📊 Distribución de puntajes</div></div>
+          <div class="card-body"><div class="chart-h-sm"><canvas id="c-distrib"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">🎯 Puntaje por dimensión</div></div>
+          <div class="card-body"><div class="chart-h-sm"><canvas id="c-dims"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">💡 NPS Interno</div></div>
+          <div class="card-body" id="ov-nps" style="display:flex;align-items:center;justify-content:center;height:170px"></div>
+        </div>
+      </div>
+
+      <!-- Top / Bottom performers -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">🏆 Top 5 — Mejor evaluados</div></div>
+          <div class="card-body-p0"><table><thead><tr><th>#</th><th>Nombre</th><th>Planta</th><th>Rol</th><th>Puntaje</th></tr></thead><tbody id="top-tabla"></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">⚠️ Requieren atención</div><span class="tag tag-amber">Bajo 3.0</span></div>
+          <div class="card-body-p0"><table><thead><tr><th>#</th><th>Nombre</th><th>Planta</th><th>Rol</th><th>Puntaje</th></tr></thead><tbody id="bottom-tabla"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ENFERMEROS ══ -->
+    <div class="page" id="page-enfermeros">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800">Evaluación de Enfermeros</div>
+        <div style="font-size:12px;color:var(--muted)" id="enf-count-label"></div>
+      </div>
+      <div id="enf-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+    </div>
+
+    <!-- ══ MÉDICOS ══ -->
+    <div class="page" id="page-medicos">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800">Evaluación de Médicos Líderes</div>
+        <div style="font-size:12px;color:var(--muted)" id="med-count-label"></div>
+      </div>
+      <div id="med-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+    </div>
+
+    <!-- ══ PLANTAS ══ -->
+    <div class="page" id="page-plantas">
+      <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:18px">Análisis por Planta / Centro</div>
+      <div id="plantas-content"></div>
+    </div>
+
+    <!-- ══ COMENTARIOS ══ -->
+    <div class="page" id="page-comentarios">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800">Comentarios y Sugerencias</div>
+        <div class="tabs" style="margin-bottom:0">
+          <button class="tab active" onclick="switchComTab('fortalezas',this)">Fortalezas</button>
+          <button class="tab" onclick="switchComTab('mejoras',this)">Áreas de mejora</button>
+        </div>
+      </div>
+      <div id="com-content"></div>
+    </div>
+
+    <!-- ══ CONFIG ══ -->
+    <div class="page" id="page-config">
+      <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:20px">Configuración — Conexión a Google Sheets</div>
+      <div class="alert alert-info" style="margin-bottom:20px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <span>Sigue estos pasos <strong>una sola vez</strong>. Luego el dashboard se actualiza automáticamente cada vez que alguien envía una evaluación.</span>
+      </div>
+
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="ss-num">1</div>
+          <div>
+            <div class="ss-title">Crea el Google Sheet</div>
+            <div class="ss-text">En Google Drive, crea una hoja de cálculo nueva. Nómbrala "Evaluaciones Promed Embol". Necesitarás dos pestañas: <strong>medico_a_enfermero</strong> y <strong>enfermero_a_medico</strong>.</div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="ss-num">2</div>
+          <div>
+            <div class="ss-title">Crea el Apps Script</div>
+            <div class="ss-text">En el Sheet, ve a <strong>Extensiones → Apps Script</strong>. Borra todo el contenido y pega este código:</div>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode('appsscript-code')">Copiar</button>
+              <pre id="appsscript-code">const SHEET_ID = '<span class="string">ID_DE_TU_GOOGLE_SHEET</span>';
+
+<span class="keyword">function</span> doPost(e) {
+  <span class="keyword">try</span> {
+    <span class="keyword">const</span> data = JSON.parse(e.postData.contents);
+    <span class="keyword">const</span> ss = SpreadsheetApp.openById(SHEET_ID);
+    <span class="keyword">const</span> sheetName = data.tipo === <span class="string">'medico_a_enfermero'</span>
+      ? <span class="string">'medico_a_enfermero'</span> : <span class="string">'enfermero_a_medico'</span>;
+    <span class="keyword">let</span> sheet = ss.getSheetByName(sheetName);
+    <span class="keyword">if</span> (!sheet) sheet = ss.insertSheet(sheetName);
+
+    <span class="comment">// Cabeceras si está vacío</span>
+    <span class="keyword">if</span> (sheet.getLastRow() === 0) {
+      <span class="keyword">const</span> headers = Object.keys(data);
+      sheet.appendRow(headers);
+    }
+    sheet.appendRow(Object.values(data));
+
+    <span class="keyword">return</span> ContentService
+      .createTextOutput(JSON.stringify({ok:<span class="keyword">true</span>}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } <span class="keyword">catch</span>(err) {
+    <span class="keyword">return</span> ContentService
+      .createTextOutput(JSON.stringify({ok:<span class="keyword">false</span>,err:err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+<span class="keyword">function</span> doGet(e) {
+  <span class="keyword">const</span> ss = SpreadsheetApp.openById(SHEET_ID);
+  <span class="keyword">const</span> result = {};
+  [<span class="string">'medico_a_enfermero'</span>, <span class="string">'enfermero_a_medico'</span>].forEach(name => {
+    <span class="keyword">const</span> sheet = ss.getSheetByName(name);
+    <span class="keyword">if</span> (!sheet) { result[name] = []; <span class="keyword">return</span>; }
+    <span class="keyword">const</span> rows = sheet.getDataRange().getValues();
+    <span class="keyword">const</span> headers = rows[0];
+    result[name] = rows.slice(1).map(r => {
+      <span class="keyword">const</span> obj = {};
+      headers.forEach((h,i) => obj[h] = r[i]);
+      <span class="keyword">return</span> obj;
+    });
+  });
+  <span class="keyword">return</span> ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+            </div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="ss-num">3</div>
+          <div>
+            <div class="ss-title">Despliega como Web App</div>
+            <div class="ss-text">En Apps Script, haz clic en <strong>Implementar → Nueva implementación</strong>. Elige tipo "Aplicación web". Configura: <em>Ejecutar como: Yo</em> · <em>Quién puede acceder: Cualquier usuario</em>. Copia la URL que aparece.</div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="ss-num">4</div>
+          <div>
+            <div class="ss-title">Pega la URL aquí</div>
+            <div class="ss-text">Esta URL conecta el dashboard con tu Google Sheet en tiempo real.</div>
+            <div class="url-input-wrap">
+              <input class="url-input" type="text" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec"/>
+              <button class="btn btn-primary" onclick="saveScriptUrl()">Guardar y conectar</button>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--muted)">También actualiza la variable <code style="background:var(--slate);padding:1px 5px;border-radius:4px;font-family:'DM Mono',monospace">SCRIPT_URL</code> en los dos formularios HTML con esta misma URL.</div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="ss-num">5</div>
+          <div>
+            <div class="ss-title">Carga datos de prueba (demo)</div>
+            <div class="ss-text">Si aún no tienes evaluaciones reales, carga datos demo para ver el dashboard funcionando.</div>
+            <div style="margin-top:10px;display:flex;gap:8px">
+              <button class="btn btn-ghost" onclick="loadDemo()">📊 Cargar datos demo</button>
+              <button class="btn btn-ghost" style="color:var(--red);border-color:#fca5a5" onclick="clearData()">🗑 Limpiar datos</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);padding:16px;margin-top:16px">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:10px">Estado de la conexión</div>
+        <div id="config-status" style="font-size:12px;color:var(--muted)">No configurado — carga datos demo o conecta tu Google Sheet.</div>
+        <div style="margin-top:10px">
+          <button class="btn btn-primary" onclick="syncData()">🔄 Sincronizar ahora</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DETALLE PERSONA -->
+<div class="modal-ov" id="modal-persona">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="mp-title">Detalle</div>
+      <button class="modal-close" onclick="document.getElementById('modal-persona').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="mp-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DATA STORE
+// ═══════════════════════════════════════════════
+let RAW_DATA = { medico_a_enfermero:[], enfermero_a_medico:[] };
+let SCRIPT_URL = localStorage.getItem('promed_script_url') || '';
+let FILTERED = [];
+const CHS = {};
+let ovTab = 'ambos';
+let comTab = 'fortalezas';
+
+const PAGE_TITLES = {
+  overview:'Resumen General — Evaluaciones Promed · Embol',
+  enfermeros:'Evaluaciones de Enfermería',
+  medicos:'Evaluaciones de Médicos Líderes',
+  plantas:'Análisis por Planta',
+  comentarios:'Comentarios y Sugerencias',
+  config:'Configuración'
+};
+
+const PLANTAS_SHORT = {
+  'Planta Warnes — Santa Cruz':'Warnes',
+  'Planta Mallasa — La Paz':'Mallasa',
+  'Planta Quillacollo — Cochabamba':'Quillacollo',
+  'CD Santa Cruz':'CD SCZ','CD La Paz':'CD LPZ',
+  'CD Cochabamba':'CD CBB','CD Potosí':'CD POT',
+  'CD Sucre':'CD SUC','CD Tarija':'CD TAR'
+};
+
+const DIM_LABELS = { A:'Técnico/Liderazgo', B:'Comunicación', C:'Actitud/Clima', D:'Bioseg./Normativa' };
+const DIM_COLORS = { A:'#1a3a6b', B:'#CC0000', C:'#059669', D:'#C8A951' };
+
+// ═══════════════════════════════════════════════
+//  DEMO DATA
+// ═══════════════════════════════════════════════
+function loadDemo(){
+  const plantas=['Planta Warnes — Santa Cruz','Planta Mallasa — La Paz','Planta Quillacollo — Cochabamba','CD Santa Cruz','CD La Paz','CD Cochabamba'];
+  const periodos=['Enero 2026','Febrero 2026','Marzo 2026','Diciembre 2025','Noviembre 2025'];
+  const medicos=['Dr. Carlos Mendieta','Dra. Patricia Vásquez','Dr. Roberto Suárez','Dra. Claudia Torrez','Dr. Mauricio Ríos'];
+  const enfermeros=['Enf. Ana Flores','Enf. Jorge Quispe','Enf. María López','Enf. Luis Mamani','Enf. Rosa Condori','Enf. Diego Vargas','Enf. Carmen Arce','Enf. Pablo Cruz'];
+  const tiempos=['3-6 meses','6-12 meses','Más de 1 año','1-3 meses'];
+
+  const rnd=(min,max)=>Math.round((min+(Math.random()*(max-min)))*100)/100;
+  const mkScore=(base)=>({ A1:rnd(base-0.8,5),A2:rnd(base-0.8,5),A3:rnd(base-0.8,5),A4:rnd(base-0.8,5),
+    B1:rnd(base-0.8,5),B2:rnd(base-0.8,5),B3:rnd(base-0.8,5),B4:rnd(base-0.8,5),
+    C1:rnd(base-0.8,5),C2:rnd(base-0.8,5),C3:rnd(base-0.8,5),C4:rnd(base-0.8,5),
+    D1:rnd(base-0.8,5),D2:rnd(base-0.8,5),D3:rnd(base-0.8,5),D4:rnd(base-0.8,5) });
+
+  const mkProm=(scores,dim)=>{const k=['A','B','C','D'];const d=k.indexOf(dim);const base=[scores.A1,scores.A2,scores.A3,scores.A4,scores.B1,scores.B2,scores.B3,scores.B4,scores.C1,scores.C2,scores.C3,scores.C4,scores.D1,scores.D2,scores.D3,scores.D4];const slice=base.slice(d*4,d*4+4);return(slice.reduce((s,v)=>s+v,0)/4).toFixed(2);};
+  const mkGlobal=(s)=>((s.A1+s.A2+s.A3+s.A4+s.B1+s.B2+s.B3+s.B4+s.C1+s.C2+s.C3+s.C4+s.D1+s.D2+s.D3+s.D4)/16).toFixed(2);
+
+  const me=[]; const em=[];
+  const fortalezas_e=['Excelente manejo de urgencias','Muy puntual y comprometida','Gran trabajo en equipo','Comunica muy bien con el equipo médico','Proactiva en prevención','Registro impecable'];
+  const mejoras_e=['Podría mejorar la documentación','Más capacitación en primeros auxilios avanzados','Mejorar comunicación en turnos nocturnos'];
+  const fortalezas_m=['Liderazgo firme y justo','Muy clara en sus indicaciones','Apoyo constante en emergencias','Promueve el aprendizaje del equipo','Excelente manejo del estrés'];
+  const mejoras_m=['Mayor disponibilidad para consultas','Mejorar la comunicación entre turnos','Más énfasis en bioseguridad'];
+
+  for(let i=0;i<60;i++){
+    const planta=plantas[i%plantas.length];
+    const medico=medicos[i%medicos.length];
+    const enfermero=enfermeros[i%enfermeros.length];
+    const periodo=periodos[i%periodos.length];
+    const base=Math.random()>0.15?3.5+Math.random()*1.2:2.0+Math.random()*0.8;
+    const s=mkScore(base);
+    me.push({
+      tipo:'medico_a_enfermero',timestamp:new Date(2026,Math.floor(Math.random()*3),Math.floor(Math.random()*28)+1).toISOString(),
+      medico_evaluador:medico,enfermero_evaluado:enfermero,planta,periodo,tiempo_juntos:tiempos[i%tiempos.length],
+      ...s,
+      dim_A_prom:mkProm(s,'A'),dim_B_prom:mkProm(s,'B'),dim_C_prom:mkProm(s,'C'),dim_D_prom:mkProm(s,'D'),
+      puntaje_global:mkGlobal(s),nps_liderazgo:Math.floor(base*1.8),
+      fortaleza:fortalezas_e[i%fortalezas_e.length],mejora:mejoras_e[i%mejoras_e.length]
+    });
+  }
+  for(let i=0;i<60;i++){
+    const planta=plantas[i%plantas.length];
+    const medico=medicos[i%medicos.length];
+    const periodo=periodos[i%periodos.length];
+    const base=Math.random()>0.15?3.6+Math.random()*1.1:2.1+Math.random()*0.7;
+    const s=mkScore(base);
+    em.push({
+      tipo:'enfermero_a_medico',timestamp:new Date(2026,Math.floor(Math.random()*3),Math.floor(Math.random()*28)+1).toISOString(),
+      medico_evaluado:medico,planta,periodo,tiempo_juntos:tiempos[i%tiempos.length],
+      ...s,
+      dim_A_prom:mkProm(s,'A'),dim_B_prom:mkProm(s,'B'),dim_C_prom:mkProm(s,'C'),dim_D_prom:mkProm(s,'D'),
+      puntaje_global:mkGlobal(s),nps_respaldo:Math.floor(base*1.8),
+      fortaleza:fortalezas_m[i%fortalezas_m.length],mejora:mejoras_m[i%mejoras_m.length]
+    });
+  }
+
+  RAW_DATA={medico_a_enfermero:me,enfermero_a_medico:em};
+  localStorage.setItem('promed_eval_data',JSON.stringify(RAW_DATA));
+  initPeriodosFilter();
+  applyFilters();
+  toast('✅ 120 evaluaciones demo cargadas');
+  document.getElementById('config-status').innerHTML='<span style="color:var(--green);font-weight:600">✓ Datos demo activos</span> — 120 evaluaciones cargadas';
+}
+
+function clearData(){
+  if(!confirm('¿Borrar todos los datos?')) return;
+  RAW_DATA={medico_a_enfermero:[],enfermero_a_medico:[]};
+  localStorage.removeItem('promed_eval_data');
+  applyFilters();
+  toast('🗑 Datos eliminados');
+}
+
+// ═══════════════════════════════════════════════
+//  SYNC CON GOOGLE SHEETS
+// ═══════════════════════════════════════════════
+async function syncData(){
+  if(!SCRIPT_URL){ toast('⚠️ Configura primero la URL del Script'); return; }
+  try{
+    const res=await fetch(SCRIPT_URL+'?t='+Date.now());
+    const data=await res.json();
+    if(data.medico_a_enfermero) RAW_DATA=data;
+    localStorage.setItem('promed_eval_data',JSON.stringify(RAW_DATA));
+    initPeriodosFilter();
+    applyFilters();
+    const now=new Date().toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('sync-time').textContent='Última sync: '+now;
+    toast('✅ Datos sincronizados desde Google Sheets');
+  }catch(e){
+    toast('❌ Error de conexión. Verifica la URL del Script.');
+  }
+}
+
+function saveScriptUrl(){
+  const url=document.getElementById('script-url-input').value.trim();
+  if(!url){alert('Ingresa la URL del Script.');return;}
+  SCRIPT_URL=url;
+  localStorage.setItem('promed_script_url',url);
+  toast('✅ URL guardada — sincronizando...');
+  syncData();
+}
+
+// ═══════════════════════════════════════════════
+//  FILTROS
+// ═══════════════════════════════════════════════
+function initPeriodosFilter(){
+  const all=[...RAW_DATA.medico_a_enfermero,...RAW_DATA.enfermero_a_medico];
+  const periodos=[...new Set(all.map(r=>r.periodo).filter(Boolean))].sort();
+  const sel=document.getElementById('fil-periodo');
+  sel.innerHTML='<option value="all">Todos los períodos</option>';
+  periodos.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+}
+
+function applyFilters(){
+  const periodo=document.getElementById('fil-periodo').value;
+  const planta=document.getElementById('fil-planta').value;
+  const tipo=document.getElementById('fil-tipo').value;
+  let arr=[...RAW_DATA.medico_a_enfermero,...RAW_DATA.enfermero_a_medico];
+  if(tipo!=='all') arr=tipo==='medico_a_enfermero'?RAW_DATA.medico_a_enfermero:RAW_DATA.enfermero_a_medico;
+  if(periodo!=='all') arr=arr.filter(r=>r.periodo===periodo);
+  if(planta!=='all') arr=arr.filter(r=>r.planta===planta);
+  FILTERED=arr;
+  document.getElementById('tb-count').textContent=arr.length+' evaluaciones';
+  renderCurrentPage();
+}
+
+function getArr(tipo){
+  if(tipo==='ambos') return FILTERED;
+  return FILTERED.filter(r=>r.tipo===tipo);
+}
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  document.getElementById('tb-title').textContent=PAGE_TITLES[id]||id;
+  renderPage(id);
+}
+function renderCurrentPage(){
+  const active=document.querySelector('.page.active');
+  if(active) renderPage(active.id.replace('page-',''));
+}
+function renderPage(id){
+  if(id==='overview') renderOverview();
+  else if(id==='enfermeros') renderEnfermeros();
+  else if(id==='medicos') renderMedicos();
+  else if(id==='plantas') renderPlantas();
+  else if(id==='comentarios') renderComentarios();
+}
+
+// ═══════════════════════════════════════════════
+//  OVERVIEW
+// ═══════════════════════════════════════════════
+function switchOvTab(t,btn){
+  ovTab=t;
+  document.querySelectorAll('.tabs .tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOverview();
+}
+
+function avg(arr){ return arr.length?arr.reduce((s,v)=>s+parseFloat(v||0),0)/arr.length:0; }
+function fmt(n){ return parseFloat(n).toFixed(2); }
+function scoreColor(s){ return s>=4?'var(--green)':s>=3?'var(--amber)':'var(--red)'; }
+function scoreTag(s){ return s>=4?'tag-green':s>=3?'tag-amber':'tag-red'; }
+
+function renderOverview(){
+  const arr=getArr(ovTab==='ambos'?'ambos':ovTab==='med-enf'?'medico_a_enfermero':'enfermero_a_medico');
+  const me=FILTERED.filter(r=>r.tipo==='medico_a_enfermero');
+  const em=FILTERED.filter(r=>r.tipo==='enfermero_a_medico');
+  const total=FILTERED.length;
+  const globalAvg=avg(arr.map(r=>r.puntaje_global));
+  const npsAvg=avg([...arr.map(r=>r.nps_liderazgo||r.nps_respaldo).filter(Boolean)]);
+  const bajos=arr.filter(r=>parseFloat(r.puntaje_global)<3).length;
+
+  document.getElementById('ov-kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-bar" style="background:var(--navy)"></div>
+      <div class="kpi-top"><div class="kpi-icon" style="background:#e8eef7">📋</div><span class="kpi-trend neutral">total</span></div>
+      <div class="kpi-val">${total}</div><div class="kpi-label">Evaluaciones recibidas</div></div>
+    <div class="kpi"><div class="kpi-bar" style="background:${scoreColor(globalAvg)}"></div>
+      <div class="kpi-top"><div class="kpi-icon" style="background:var(--gold-l)">⭐</div><span class="kpi-trend ${globalAvg>=4?'up':globalAvg>=3?'neutral':'down'}">${globalAvg>=4?'Excelente':globalAvg>=3?'Bueno':'Atención'}</span></div>
+      <div class="kpi-val" style="color:${scoreColor(globalAvg)}">${fmt(globalAvg)}</div><div class="kpi-label">Puntaje global /5</div></div>
+    <div class="kpi"><div class="kpi-bar" style="background:var(--red)"></div>
+      <div class="kpi-top"><div class="kpi-icon" style="background:var(--red-l)">🩺</div><span class="kpi-trend neutral">${me.length}</span></div>
+      <div class="kpi-val" style="color:var(--red)">${fmt(avg(me.map(r=>r.puntaje_global)))}</div><div class="kpi-label">Promedio enfermeros</div></div>
+    <div class="kpi"><div class="kpi-bar" style="background:var(--blue)"></div>
+      <div class="kpi-top"><div class="kpi-icon" style="background:var(--blue-l)">👨‍⚕️</div><span class="kpi-trend neutral">${em.length}</span></div>
+      <div class="kpi-val" style="color:var(--blue)">${fmt(avg(em.map(r=>r.puntaje_global)))}</div><div class="kpi-label">Promedio médicos</div></div>
+    <div class="kpi"><div class="kpi-bar" style="background:${bajos>0?'var(--amber)':'var(--green)'}"></div>
+      <div class="kpi-top"><div class="kpi-icon" style="background:${bajos>0?'var(--amber-l)':'var(--green-l)'}">${bajos>0?'⚠️':'✅'}</div><span class="kpi-trend ${bajos>0?'down':'up'}">${bajos>0?bajos+' casos':'OK'}</span></div>
+      <div class="kpi-val" style="color:${bajos>0?'var(--amber)':'var(--green)'}">NPS ${fmt(npsAvg)}</div><div class="kpi-label">NPS interno /10</div></div>
+  `;
+
+  // Chart períodos
+  const periodos=[...new Set(arr.map(r=>r.periodo).filter(Boolean))].sort();
+  const pData=periodos.map(p=>({label:p.slice(0,3)+' '+p.slice(-2),val:avg(arr.filter(r=>r.periodo===p).map(r=>r.puntaje_global))}));
+  destroyChart('c-periodos');
+  CHS['c-periodos']=new Chart(document.getElementById('c-periodos'),{
+    type:'line',
+    data:{labels:pData.map(x=>x.label),datasets:[{data:pData.map(x=>parseFloat(fmt(x.val))),borderColor:'#1a3a6b',backgroundColor:'rgba(26,58,107,.07)',fill:true,tension:0.4,pointBackgroundColor:'#1a3a6b',pointRadius:4,pointHoverRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:5,grid:{color:'#f1f5f9'},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}}}
+  });
+
+  // Chart plantas
+  const plantasU=[...new Set(arr.map(r=>r.planta).filter(Boolean))];
+  const pAvgs=plantasU.map(p=>({label:PLANTAS_SHORT[p]||p.split(' ')[0],val:parseFloat(fmt(avg(arr.filter(r=>r.planta===p).map(r=>r.puntaje_global))))})).sort((a,b)=>b.val-a.val);
+  const barColors=pAvgs.map(x=>x.val>=4?'rgba(5,150,105,.8)':x.val>=3?'rgba(217,119,6,.8)':'rgba(204,0,0,.8)');
+  destroyChart('c-plantas');
+  CHS['c-plantas']=new Chart(document.getElementById('c-plantas'),{
+    type:'bar',data:{labels:pAvgs.map(x=>x.label),datasets:[{data:pAvgs.map(x=>x.val),backgroundColor:barColors,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:5,grid:{color:'#f1f5f9'},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}}}
+  });
+
+  // Distribución
+  const buckets=[1,2,3,4,5];
+  const distCounts=buckets.map(b=>arr.filter(r=>Math.round(parseFloat(r.puntaje_global))===b).length);
+  destroyChart('c-distrib');
+  CHS['c-distrib']=new Chart(document.getElementById('c-distrib'),{
+    type:'bar',data:{labels:['1 - Muy bajo','2 - Bajo','3 - Medio','4 - Bueno','5 - Excelente'],datasets:[{data:distCounts,backgroundColor:['#dc2626','#f97316','#d97706','#059669','#0891b2'],borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:9}}}}}
+  });
+
+  // Por dimensión
+  const dimAvgs=['A','B','C','D'].map(d=>parseFloat(fmt(avg(arr.map(r=>parseFloat(r['dim_'+d+'_prom']||0)).filter(v=>v>0)))));
+  destroyChart('c-dims');
+  CHS['c-dims']=new Chart(document.getElementById('c-dims'),{
+    type:'radar',
+    data:{labels:['Técnico/Liderazgo','Comunicación','Actitud/Clima','Bioseg./Normativa'],
+      datasets:[{data:dimAvgs,backgroundColor:'rgba(26,58,107,.15)',borderColor:'#1a3a6b',pointBackgroundColor:'#1a3a6b',borderWidth:2,pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:9}},pointLabels:{font:{size:10}}}},plugins:{legend:{display:false}}}
+  });
+
+  // NPS
+  const npsAll=arr.map(r=>parseFloat(r.nps_liderazgo||r.nps_respaldo||0)).filter(v=>v>0);
+  const npsVal=avg(npsAll);
+  const c=scoreColor(npsVal/2);
+  document.getElementById('ov-nps').innerHTML=`
+    <div style="text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:${c};line-height:1">${fmt(npsVal)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">NPS Interno promedio (1-10)</div>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <span class="tag tag-red">Bajo (1-4): ${npsAll.filter(v=>v<=4).length}</span>
+        <span class="tag tag-amber">Medio (5-7): ${npsAll.filter(v=>v>4&&v<=7).length}</span>
+        <span class="tag tag-green">Alto (8-10): ${npsAll.filter(v=>v>7).length}</span>
+      </div>
+    </div>`;
+
+  // Top / bottom performers
+  renderPerformers(arr);
+}
+
+function renderPerformers(arr){
+  const byPerson={};
+  arr.forEach(r=>{
+    const name=r.enfermero_evaluado||r.medico_evaluado||'Desconocido';
+    const rol=r.tipo==='medico_a_enfermero'?'Enfermero/a':'Médico Líder';
+    if(!byPerson[name]) byPerson[name]={name,rol,planta:r.planta,scores:[],tipo:r.tipo};
+    byPerson[name].scores.push(parseFloat(r.puntaje_global));
+  });
+  const persons=Object.values(byPerson).map(p=>({...p,avg:avg(p.scores),n:p.scores.length})).filter(p=>p.n>=2);
+  const sorted=persons.sort((a,b)=>b.avg-a.avg);
+  const top=sorted.slice(0,5);
+  const bottom=sorted.filter(p=>p.avg<3).slice(0,5);
+
+  document.getElementById('top-tabla').innerHTML=top.map((p,i)=>`
+    <tr><td class="td-mono">${['🥇','🥈','🥉','4°','5°'][i]}</td>
+    <td class="td-bold">${p.name}</td>
+    <td><span class="tag tag-ghost">${PLANTAS_SHORT[p.planta]||'—'}</span></td>
+    <td><span class="tag ${p.tipo==='medico_a_enfermero'?'tag-red':'tag-blue'}">${p.rol}</span></td>
+    <td><strong style="color:var(--green);font-family:'Syne',sans-serif">${fmt(p.avg)}</strong></td></tr>
+  `).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Sin datos suficientes</td></tr>';
+
+  document.getElementById('bottom-tabla').innerHTML=bottom.length?bottom.map((p,i)=>`
+    <tr><td class="td-mono">⚠️</td>
+    <td class="td-bold">${p.name}</td>
+    <td><span class="tag tag-ghost">${PLANTAS_SHORT[p.planta]||'—'}</span></td>
+    <td><span class="tag ${p.tipo==='medico_a_enfermero'?'tag-red':'tag-blue'}">${p.rol}</span></td>
+    <td><strong style="color:var(--red);font-family:'Syne',sans-serif">${fmt(p.avg)}</strong></td></tr>
+  `).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--green);padding:20px">✅ Todos sobre 3.0</td></tr>';
+}
+
+// ═══════════════════════════════════════════════
+//  ENFERMEROS / MÉDICOS
+// ═══════════════════════════════════════════════
+function renderPersonCards(arr, tipo, gridId, countId, labelKey){
+  const byPerson={};
+  arr.filter(r=>r.tipo===tipo).forEach(r=>{
+    const name=r[labelKey]||'Desconocido';
+    if(!byPerson[name]) byPerson[name]={name,planta:r.planta,evals:[],tipo};
+    byPerson[name].evals.push(r);
+  });
+  const persons=Object.values(byPerson);
+  document.getElementById(countId).textContent=`${persons.length} personas evaluadas · ${arr.filter(r=>r.tipo===tipo).length} evaluaciones`;
+
+  document.getElementById(gridId).innerHTML=persons.map(p=>{
+    const g=avg(p.evals.map(r=>parseFloat(r.puntaje_global)));
+    const dims=['A','B','C','D'].map(d=>({d,v:avg(p.evals.map(r=>parseFloat(r['dim_'+d+'_prom']||0)).filter(v=>v>0))}));
+    const initials=p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const bgColors=['#0b1928','#CC0000','#1a3a6b','#059669','#d97706','#7c3aed'];
+    const bg=bgColors[p.name.charCodeAt(0)%bgColors.length];
+    return `
+      <div class="person-card" onclick="showPersonDetail(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+        <div class="person-top">
+          <div class="person-av" style="background:${bg};color:#fff">${initials}</div>
+          <div>
+            <div class="person-name">${p.name}</div>
+            <div class="person-role">${p.evals.length} evaluación(es)</div>
+            <div class="person-planta">${PLANTAS_SHORT[p.planta]||p.planta||'—'}</div>
+          </div>
+        </div>
+        <div class="score-bar-wrap">
+          ${dims.map(({d,v})=>`
+            <div class="score-bar-row">
+              <div class="score-bar-label">${d}: ${DIM_LABELS[d].split('/')[0]}</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width:${v/5*100}%;background:${DIM_COLORS[d]}"></div></div>
+              <div class="score-bar-val">${fmt(v)}</div>
+            </div>`).join('')}
+        </div>
+        <div class="global-score">
+          <span class="gs-label">Puntaje global</span>
+          <span class="gs-val" style="color:${scoreColor(g)}">${fmt(g)} <span style="font-size:13px;color:var(--muted)">/5</span></span>
+        </div>
+      </div>`;
+  }).join('')||`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)">Sin evaluaciones disponibles</div>`;
+}
+
+function renderEnfermeros(){
+  renderPersonCards(FILTERED,'medico_a_enfermero','enf-grid','enf-count-label','enfermero_evaluado');
+}
+function renderMedicos(){
+  renderPersonCards(FILTERED,'enfermero_a_medico','med-grid','med-count-label','medico_evaluado');
+}
+
+// ═══════════════════════════════════════════════
+//  MODAL DETALLE PERSONA
+// ═══════════════════════════════════════════════
+function showPersonDetail(p){
+  const evals=p.evals||[];
+  const g=avg(evals.map(r=>parseFloat(r.puntaje_global)));
+  const dims=['A','B','C','D'].map(d=>({d,label:DIM_LABELS[d],v:avg(evals.map(r=>parseFloat(r['dim_'+d+'_prom']||0)).filter(v=>v>0))}));
+  const fortalezas=evals.map(r=>r.fortaleza).filter(Boolean);
+  const mejoras=evals.map(r=>r.mejora).filter(Boolean);
+
+  document.getElementById('mp-title').textContent=p.name;
+  document.getElementById('mp-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px">Puntaje por dimensión</div>
+        ${dims.map(({d,label,v})=>`
+          <div class="prog-row">
+            <div class="prog-label">${label}</div>
+            <div class="prog-bar"><div class="prog-fill" style="width:${v/5*100}%;background:${DIM_COLORS[d]}"></div></div>
+            <div class="prog-val">${fmt(v)}</div>
+          </div>`).join('')}
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
+          <span style="font-size:13px;color:var(--muted)">Puntaje global</span>
+          <span style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${scoreColor(g)}">${fmt(g)}/5</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px">Resumen</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--slate);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">${evals.length}</div><div style="font-size:10px;color:var(--muted)">Evaluaciones</div></div>
+          <div style="background:var(--slate);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:${scoreColor(g)}">${fmt(g)}</div><div style="font-size:10px;color:var(--muted)">Promedio global</div></div>
+          <div style="background:var(--slate);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">${avg(evals.map(r=>parseFloat(r.nps_liderazgo||r.nps_respaldo||0)).filter(v=>v>0)).toFixed(1)}</div><div style="font-size:10px;color:var(--muted)">NPS /10</div></div>
+          <div style="background:var(--slate);border-radius:8px;padding:12px;text-align:center"><span class="tag ${scoreTag(g)}" style="font-size:11px">${g>=4?'Destacado':g>=3?'Adecuado':'Requiere mejora'}</span></div>
+        </div>
+      </div>
+    </div>
+    ${fortalezas.length?`<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px">💪 Fortalezas identificadas</div>${fortalezas.map(f=>`<div style="background:var(--green-l);border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:5px;border-left:3px solid var(--green)">${f}</div>`).join('')}</div>`:''}
+    ${mejoras.length?`<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--amber);margin-bottom:8px">📈 Áreas de mejora sugeridas</div>${mejoras.map(m=>`<div style="background:var(--amber-l);border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:5px;border-left:3px solid var(--amber)">${m}</div>`).join('')}</div>`:''}
+  `;
+  document.getElementById('modal-persona').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════
+//  PLANTAS
+// ═══════════════════════════════════════════════
+function renderPlantas(){
+  const plantas=[...new Set(FILTERED.map(r=>r.planta).filter(Boolean))];
+  document.getElementById('plantas-content').innerHTML=plantas.map(planta=>{
+    const arr=FILTERED.filter(r=>r.planta===planta);
+    const g=avg(arr.map(r=>parseFloat(r.puntaje_global)));
+    const me=arr.filter(r=>r.tipo==='medico_a_enfermero');
+    const em=arr.filter(r=>r.tipo==='enfermero_a_medico');
+    return `
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head">
+          <div>
+            <div class="card-title">${planta}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${arr.length} evaluaciones · ${me.length} de enfermería · ${em.length} de médicos</div>
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${scoreColor(g)}">${fmt(g)}/5</div>
+        </div>
+        <div class="card-body" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+          ${['A','B','C','D'].map(d=>{
+            const v=avg(arr.map(r=>parseFloat(r['dim_'+d+'_prom']||0)).filter(v=>v>0));
+            return `<div style="text-align:center;background:var(--slate);border-radius:8px;padding:12px">
+              <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:${DIM_COLORS[d]}">${fmt(v)}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">${DIM_LABELS[d]}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('')||'<div style="text-align:center;padding:40px;color:var(--muted)">Sin datos disponibles</div>';
+}
+
+// ═══════════════════════════════════════════════
+//  COMENTARIOS
+// ═══════════════════════════════════════════════
+function switchComTab(t,btn){
+  comTab=t;
+  document.querySelectorAll('#page-comentarios .tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderComentarios();
+}
+function renderComentarios(){
+  const field=comTab==='fortalezas'?'fortaleza':'mejora';
+  const color=comTab==='fortalezas'?'var(--green)':'var(--amber)';
+  const bgColor=comTab==='fortalezas'?'var(--green-l)':'var(--amber-l)';
+  const borderColor=comTab==='fortalezas'?'var(--green)':'var(--amber)';
+  const comments=FILTERED.map(r=>({text:r[field],tipo:r.tipo,planta:r.planta,persona:r.enfermero_evaluado||r.medico_evaluado||'Anónimo',periodo:r.periodo})).filter(c=>c.text&&c.text.trim());
+  document.getElementById('com-content').innerHTML=comments.length?
+    `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px">
+      ${comments.map(c=>`
+        <div style="background:${bgColor};border-radius:var(--r);padding:14px 16px;border:1px solid ${borderColor}20;border-left:3px solid ${borderColor}">
+          <div style="font-size:13px;line-height:1.6;color:var(--text2);margin-bottom:8px">"${c.text}"</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="tag tag-ghost">${c.planta?PLANTAS_SHORT[c.planta]||c.planta:''}</span>
+            <span class="tag ${c.tipo==='medico_a_enfermero'?'tag-red':'tag-blue'}">${c.tipo==='medico_a_enfermero'?'Sobre enfermero':'Sobre médico'}</span>
+            <span class="tag tag-ghost">${c.periodo||''}</span>
+          </div>
+        </div>`).join('')}
+    </div>`
+    :'<div style="text-align:center;padding:40px;color:var(--muted)">Sin comentarios disponibles</div>';
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function destroyChart(id){ if(CHS[id]){CHS[id].destroy();delete CHS[id];} }
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function exportCSV(){
+  if(!FILTERED.length){toast('Sin datos para exportar');return;}
+  const headers=Object.keys(FILTERED[0]);
+  const rows=FILTERED.map(r=>headers.map(h=>`"${String(r[h]||'').replace(/"/g,'""')}"`).join(','));
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`PromedEmbol_Evaluaciones_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  toast('📥 CSV exportado');
+}
+
+function copyCode(id){
+  const text=document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(()=>toast('✅ Código copiado'));
+}
+
+document.getElementById('modal-persona').addEventListener('click',e=>{
+  if(e.target===document.getElementById('modal-persona')) document.getElementById('modal-persona').classList.remove('open');
+});
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved=localStorage.getItem('promed_eval_data');
+  if(saved){ try{ RAW_DATA=JSON.parse(saved); }catch(e){} }
+  const savedUrl=localStorage.getItem('promed_script_url');
+  if(savedUrl){ SCRIPT_URL=savedUrl; document.getElementById('script-url-input').value=savedUrl; }
+  initPeriodosFilter();
+  applyFilters();
+  // Auto-sync si tiene URL configurada
+  if(SCRIPT_URL) setTimeout(syncData,1000);
+});
+</script>
+</body>
+</html>
