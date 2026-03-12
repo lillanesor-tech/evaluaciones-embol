@@ -748,7 +748,7 @@ function renderOverview(){
 
   // Chart períodos
   const periodos=[...new Set(arr.map(r=>r.periodo).filter(Boolean))].sort();
-  const pData=periodos.map(p=>({label:p.split(' ').map((w,i)=>i===0?w.slice(0,3):w.slice(-2)).join(' '),val:avg(arr.filter(r=>r.periodo===p).map(r=>r.puntaje_global))}));
+  const pData=periodos.map(p=>({label:(()=>{const w=p.trim().split(' ');return (w[0]||'').slice(0,3)+(w.length>1?' '+(w[w.length-1]||'').slice(-2):'')})(),val:avg(arr.filter(r=>r.periodo===p).map(r=>r.puntaje_global))}));
   destroyChart('c-periodos');
   CHS['c-periodos']=new Chart(document.getElementById('c-periodos'),{
     type:'line',
@@ -758,7 +758,7 @@ function renderOverview(){
 
   // Chart plantas
   const plantasU=[...new Set(arr.map(r=>r.planta).filter(Boolean))];
-  const pAvgs=plantasU.map(p=>({label:PLANTAS_SHORT[p]||p.split(' — ')[0].replace('Planta ','').split(' ')[0] + (p.includes('Santa Cruz')?' SCZ':p.includes('La Paz')?' LPZ':p.includes('Cochabamba')?' CBB':''),val:parseFloat(fmt(avg(arr.filter(r=>r.planta===p).map(r=>r.puntaje_global))))})).sort((a,b)=>b.val-a.val);
+  const pAvgs=plantasU.map(p=>({label:PLANTAS_SHORT[p]||(p.split(' — ')[0].replace('Planta ','').replace('Centro de Distribución','CD').trim().slice(0,12)),val:parseFloat(fmt(avg(arr.filter(r=>r.planta===p).map(r=>r.puntaje_global))))})).sort((a,b)=>b.val-a.val);
   const barColors=pAvgs.map(x=>x.val>=4?'rgba(5,150,105,.8)':x.val>=3?'rgba(217,119,6,.8)':'rgba(204,0,0,.8)');
   destroyChart('c-plantas');
   CHS['c-plantas']=new Chart(document.getElementById('c-plantas'),{
