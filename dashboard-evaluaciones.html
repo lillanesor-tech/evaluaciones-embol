@@ -265,7 +265,7 @@ tbody tr:hover td{background:#f8fafc;cursor:pointer}
     <div class="sb-sync" onclick="syncData()">
       <div class="sb-sync-icon"></div>
       <div>
-        <div class="sb-sync-text">Datos en tiempo real</div>
+        <div class="sb-sync-text">Auto-sync · cada 3 min</div>
         <div class="sb-sync-time" id="sync-time">Última sync: ahora</div>
       </div>
     </div>
@@ -544,7 +544,7 @@ const PLANTAS_SHORT = {
   'Planta Quillacollo — Cochabamba':'Quillacollo',
   'CD Santa Cruz':'CD SCZ','CD La Paz':'CD LPZ',
   'CD Cochabamba':'CD CBB','CD Potosí':'CD POT',
-  'CD Sucre':'CD SUC','CD Tarija':'CD TAR'
+  'CD Sucre':'CD SUC','CD Tarija':'CD TAR','Planta Warnes':'Warnes','Planta Mallasa':'Mallasa','Planta Quillacollo':'Quillacollo'
 };
 
 const DIM_LABELS = { A:'Técnico/Liderazgo', B:'Comunicación', C:'Actitud/Clima', D:'Bioseg./Normativa' };
@@ -758,7 +758,7 @@ function renderOverview(){
 
   // Chart plantas
   const plantasU=[...new Set(arr.map(r=>r.planta).filter(Boolean))];
-  const pAvgs=plantasU.map(p=>({label:PLANTAS_SHORT[p]||p.split(' ')[0],val:parseFloat(fmt(avg(arr.filter(r=>r.planta===p).map(r=>r.puntaje_global))))})).sort((a,b)=>b.val-a.val);
+  const pAvgs=plantasU.map(p=>({label:PLANTAS_SHORT[p]||p.replace(' — ',' · ').slice(0,14),val:parseFloat(fmt(avg(arr.filter(r=>r.planta===p).map(r=>r.puntaje_global))))})).sort((a,b)=>b.val-a.val);
   const barColors=pAvgs.map(x=>x.val>=4?'rgba(5,150,105,.8)':x.val>=3?'rgba(217,119,6,.8)':'rgba(204,0,0,.8)');
   destroyChart('c-plantas');
   CHS['c-plantas']=new Chart(document.getElementById('c-plantas'),{
@@ -1031,8 +1031,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   if(savedUrl){ SCRIPT_URL=savedUrl; document.getElementById('script-url-input').value=savedUrl; }
   initPeriodosFilter();
   applyFilters();
-  // Auto-sync si tiene URL configurada
-  if(SCRIPT_URL) setTimeout(syncData,1000);
+  // Sync inicial
+  if(SCRIPT_URL) setTimeout(syncData, 1000);
+
+  // Auto-sync cada 3 minutos
+  setInterval(() => {
+    if(SCRIPT_URL) syncData();
+  }, 3 * 60 * 1000);
+
 });
 </script>
 </body>
