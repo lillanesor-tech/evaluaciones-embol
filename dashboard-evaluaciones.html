@@ -244,15 +244,27 @@ tbody tr:hover td{background:#f8fafc;cursor:pointer}
     </select>
     <select class="sb-select" id="fil-planta" onchange="applyFilters()">
       <option value="all">Todas las plantas</option>
-      <option>Planta Warnes — Santa Cruz</option>
-      <option>Planta Mallasa — La Paz</option>
-      <option>Planta Quillacollo — Cochabamba</option>
-      <option>CD Santa Cruz</option>
-      <option>CD La Paz</option>
-      <option>CD Cochabamba</option>
-      <option>CD Potosí</option>
-      <option>CD Sucre</option>
-      <option>CD Tarija</option>
+      <optgroup label="Santa Cruz">
+        <option>Planta — Santa Cruz</option>
+        <option>CD Santa Cruz</option>
+      </optgroup>
+      <optgroup label="La Paz">
+        <option>Planta — La Paz</option>
+        <option>CD La Paz</option>
+      </optgroup>
+      <optgroup label="Tarija">
+        <option>Planta — Tarija</option>
+        <option>CD Tarija</option>
+      </optgroup>
+      <optgroup label="Cochabamba">
+        <option>Planta — Cochabamba</option>
+        <option>CD Cochabamba</option>
+      </optgroup>
+      <optgroup label="Otras">
+        <option>CD Potosí</option>
+        <option>CD Sucre</option>
+        <option>CD Oruro</option>
+      </optgroup>
     </select>
     <select class="sb-select" id="fil-tipo" onchange="applyFilters()">
       <option value="all">Ambas evaluaciones</option>
@@ -539,12 +551,17 @@ const PAGE_TITLES = {
 };
 
 const PLANTAS_SHORT = {
-  'Planta Warnes — Santa Cruz':'Warnes',
-  'Planta Mallasa — La Paz':'Mallasa',
-  'Planta Quillacollo — Cochabamba':'Quillacollo',
-  'CD Santa Cruz':'CD SCZ','CD La Paz':'CD LPZ',
-  'CD Cochabamba':'CD CBB','CD Potosí':'CD POT',
-  'CD Sucre':'CD SUC','CD Tarija':'CD TAR','Planta Warnes':'Warnes','Planta Mallasa':'Mallasa','Planta Quillacollo':'Quillacollo'
+  'Planta — Santa Cruz':'Planta SCZ',
+  'CD Santa Cruz':'CD SCZ',
+  'Planta — La Paz':'Planta LPZ',
+  'CD La Paz':'CD LPZ',
+  'Planta — Tarija':'Planta TAR',
+  'CD Tarija':'CD TAR',
+  'Planta — Cochabamba':'Planta CBB',
+  'CD Cochabamba':'CD CBB',
+  'CD Potosí':'CD POT',
+  'CD Sucre':'CD SUC',
+  'CD Oruro':'CD ORU'
 };
 
 const DIM_LABELS = { A:'Técnico/Liderazgo', B:'Comunicación', C:'Actitud/Clima', D:'Bioseg./Normativa' };
@@ -637,6 +654,11 @@ async function syncData(){
     applyFilters();
     const now=new Date().toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit'});
     document.getElementById('sync-time').textContent='Última sync: '+now;
+    // Debug: log raw values to console
+    const allP=[...new Set(FILTERED.map(r=>r.periodo).filter(Boolean))];
+    const allPl=[...new Set(FILTERED.map(r=>r.planta).filter(Boolean))];
+    console.log('PERIODOS en datos:', allP);
+    console.log('PLANTAS en datos:', allPl);
     toast('✅ Datos sincronizados desde Google Sheets');
   }catch(e){
     toast('❌ Error de conexión. Verifica la URL del Script.');
@@ -748,7 +770,17 @@ function renderOverview(){
 
   // Chart períodos
   const periodos=[...new Set(arr.map(r=>r.periodo).filter(Boolean))].sort();
-  const pData=periodos.map(p=>({label:(()=>{const w=p.trim().split(' ');return (w[0]||'').slice(0,3)+(w.length>1?' '+(w[w.length-1]||'').slice(-2):'')})(),val:avg(arr.filter(r=>r.periodo===p).map(r=>r.puntaje_global))}));
+  const pData=periodos.map(p=>({label:(()=>{
+    const meses={'enero':'Ene','febrero':'Feb','marzo':'Mar','abril':'Abr','mayo':'May',
+      'junio':'Jun','julio':'Jul','agosto':'Ago','septiembre':'Sep','octubre':'Oct',
+      'noviembre':'Nov','diciembre':'Dic','Enero':'Ene','Febrero':'Feb','Marzo':'Mar',
+      'Abril':'Abr','Mayo':'May','Junio':'Jun','Julio':'Jul','Agosto':'Ago',
+      'Septiembre':'Sep','Octubre':'Oct','Noviembre':'Nov','Diciembre':'Dic'};
+    const parts=p.trim().split(' ');
+    const mes=meses[parts[0]]||parts[0].slice(0,3);
+    const yr=(parts[1]||'').slice(-2);
+    return mes+(yr?' '+yr:'');
+  })(),val:avg(arr.filter(r=>r.periodo===p).map(r=>r.puntaje_global))}));
   destroyChart('c-periodos');
   CHS['c-periodos']=new Chart(document.getElementById('c-periodos'),{
     type:'line',
@@ -758,7 +790,7 @@ function renderOverview(){
 
   // Chart plantas
   const plantasU=[...new Set(arr.map(r=>r.planta).filter(Boolean))];
-  const pAvgs=plantasU.map(p=>({label:PLANTAS_SHORT[p]||(p.split(' — ')[0].replace('Planta ','').replace('Centro de Distribución','CD').trim().slice(0,12)),val:parseFloat(fmt(avg(arr.filter(r=>r.planta===p).map(r=>r.puntaje_global))))})).sort((a,b)=>b.val-a.val);
+  const pAvgs=plantasU.map(p=>({label:PLANTAS_SHORT[p]||PLANTAS_SHORT[Object.keys(PLANTAS_SHORT).find(k=>p.includes(k.split(' — ')[0].replace('Planta ','').split(' ')[0]))]||p.replace('Planta Warnes','Warnes').replace('Planta Mallasa','Mallasa').replace('Planta Quillacollo','Quillacollo').replace('Centro de Distribución','CD').replace('-- ','- ').replace(' — ',' ').replace('Santa Cruz','SCZ').replace('La Paz','LPZ').replace('Cochabamba','CBB').replace('Potosí','POT').replace('Sucre','SUC').replace('Tarija','TAR').trim().slice(0,12),val:parseFloat(fmt(avg(arr.filter(r=>r.planta===p).map(r=>r.puntaje_global))))})).sort((a,b)=>b.val-a.val);
   const barColors=pAvgs.map(x=>x.val>=4?'rgba(5,150,105,.8)':x.val>=3?'rgba(217,119,6,.8)':'rgba(204,0,0,.8)');
   destroyChart('c-plantas');
   CHS['c-plantas']=new Chart(document.getElementById('c-plantas'),{
